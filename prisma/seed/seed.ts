@@ -86,12 +86,12 @@ async function main() {
         municipioHuercalOvera,
         municipioElEjido,
     ] = await Promise.all([
-        prisma.municipio.create({ data: { nombre: "Murcia",          provinciaId: murcia.id  } }),
-        prisma.municipio.create({ data: { nombre: "Cartagena",      provinciaId: murcia.id  } }),
-        prisma.municipio.create({ data: { nombre: "Lorca",          provinciaId: murcia.id  } }),
-        prisma.municipio.create({ data: { nombre: "Almería",        provinciaId: almeria.id } }),
-        prisma.municipio.create({ data: { nombre: "Huércal-Overa",  provinciaId: almeria.id } }),
-        prisma.municipio.create({ data: { nombre: "El Ejido",       provinciaId: almeria.id } }),
+        prisma.municipio.create({ data: { nombre: "Murcia",     provinciaId: murcia.id  } }),
+        prisma.municipio.create({ data: { nombre: "Cartagena",  provinciaId: murcia.id  } }),
+        prisma.municipio.create({ data: { nombre: "Lorca",      provinciaId: murcia.id  } }),
+        prisma.municipio.create({ data: { nombre: "Almería",    provinciaId: almeria.id } }),
+        prisma.municipio.create({ data: { nombre: "Huércal-Overa", provinciaId: almeria.id } }),
+        prisma.municipio.create({ data: { nombre: "El Ejido",   provinciaId: almeria.id } }),
     ]);
 
     // -- Cultivos
@@ -475,7 +475,25 @@ async function main() {
 
     console.log("Agricultural data seeded successfully.");
 
+    // -- Movies with embeddings
+    console.log("Generating movie embeddings (this may take a moment)...");
 
+    const extractor = await pipeline("feature-extraction", "Xenova/all-MiniLM-L6-v2");
+
+    for (const movie of movies) {
+        const output = await extractor(movie.description, { pooling: "mean", normalize: true });
+        const embedding: number[] = Array.from(output.data as Float32Array);
+        const vectorLiteral = `[${embedding.join(",")}]`;
+
+        await prisma.$executeRawUnsafe(
+            `INSERT INTO "Movie" ("title", "description", "embedding") VALUES ($1, $2, $3::vector)`,
+            movie.title,
+            movie.description,
+            vectorLiteral
+        );
+    }
+
+    console.log("Movies seeded successfully.");
 }
 
 main()
