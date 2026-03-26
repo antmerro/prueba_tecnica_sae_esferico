@@ -1093,6 +1093,11 @@ export type ParcelaFindManyArgs<ExtArgs extends runtime.Types.Extensions.Interna
    * Skip the first `n` Parcelas.
    */
   skip?: number
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+   * 
+   * Filter by unique combinations of Parcelas.
+   */
   distinct?: Prisma.ParcelaScalarFieldEnum | Prisma.ParcelaScalarFieldEnum[]
 }
 

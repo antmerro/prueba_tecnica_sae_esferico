@@ -47,3 +47,8 @@ export type Recinto = Prisma.RecintoModel
  * 
  */
 export type Cultivo = Prisma.CultivoModel
+/**
+ * Model Movie
+ * 
+ */
+export type Movie = Prisma.MovieModel

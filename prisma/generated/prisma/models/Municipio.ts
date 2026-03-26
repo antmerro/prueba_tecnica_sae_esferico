@@ -1194,6 +1194,11 @@ export type MunicipioFindManyArgs<ExtArgs extends runtime.Types.Extensions.Inter
    * Skip the first `n` Municipios.
    */
   skip?: number
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+   * 
+   * Filter by unique combinations of Municipios.
+   */
   distinct?: Prisma.MunicipioScalarFieldEnum | Prisma.MunicipioScalarFieldEnum[]
 }
 
