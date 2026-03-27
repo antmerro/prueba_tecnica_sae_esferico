@@ -387,6 +387,7 @@ export const ModelName = {
   Provincia: 'Provincia',
   Municipio: 'Municipio',
   Usuario: 'Usuario',
+  Perfil: 'Perfil',
   Parcela: 'Parcela',
   Recinto: 'Recinto',
   Cultivo: 'Cultivo',
@@ -406,7 +407,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "provincia" | "municipio" | "usuario" | "parcela" | "recinto" | "cultivo" | "movie"
+    modelProps: "provincia" | "municipio" | "usuario" | "perfil" | "parcela" | "recinto" | "cultivo" | "movie"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -629,6 +630,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.UsuarioCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.UsuarioCountAggregateOutputType> | number
+        }
+      }
+    }
+    Perfil: {
+      payload: Prisma.$PerfilPayload<ExtArgs>
+      fields: Prisma.PerfilFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PerfilFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PerfilPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PerfilFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PerfilPayload>
+        }
+        findFirst: {
+          args: Prisma.PerfilFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PerfilPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PerfilFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PerfilPayload>
+        }
+        findMany: {
+          args: Prisma.PerfilFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PerfilPayload>[]
+        }
+        create: {
+          args: Prisma.PerfilCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PerfilPayload>
+        }
+        createMany: {
+          args: Prisma.PerfilCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.PerfilCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PerfilPayload>[]
+        }
+        delete: {
+          args: Prisma.PerfilDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PerfilPayload>
+        }
+        update: {
+          args: Prisma.PerfilUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PerfilPayload>
+        }
+        deleteMany: {
+          args: Prisma.PerfilDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PerfilUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.PerfilUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PerfilPayload>[]
+        }
+        upsert: {
+          args: Prisma.PerfilUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PerfilPayload>
+        }
+        aggregate: {
+          args: Prisma.PerfilAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePerfil>
+        }
+        groupBy: {
+          args: Prisma.PerfilGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PerfilGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PerfilCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PerfilCountAggregateOutputType> | number
         }
       }
     }
@@ -946,6 +1021,15 @@ export const UsuarioScalarFieldEnum = {
 export type UsuarioScalarFieldEnum = (typeof UsuarioScalarFieldEnum)[keyof typeof UsuarioScalarFieldEnum]
 
 
+export const PerfilScalarFieldEnum = {
+  id: 'id',
+  imagen: 'imagen',
+  usuarioId: 'usuarioId'
+} as const
+
+export type PerfilScalarFieldEnum = (typeof PerfilScalarFieldEnum)[keyof typeof PerfilScalarFieldEnum]
+
+
 export const ParcelaScalarFieldEnum = {
   id: 'id',
   usuarioId: 'usuarioId',
@@ -1166,6 +1250,7 @@ export type GlobalOmitConfig = {
   provincia?: Prisma.ProvinciaOmit
   municipio?: Prisma.MunicipioOmit
   usuario?: Prisma.UsuarioOmit
+  perfil?: Prisma.PerfilOmit
   parcela?: Prisma.ParcelaOmit
   recinto?: Prisma.RecintoOmit
   cultivo?: Prisma.CultivoOmit

@@ -11,6 +11,7 @@
 export type * from './models/Provincia.ts'
 export type * from './models/Municipio.ts'
 export type * from './models/Usuario.ts'
+export type * from './models/Perfil.ts'
 export type * from './models/Parcela.ts'
 export type * from './models/Recinto.ts'
 export type * from './models/Cultivo.ts'

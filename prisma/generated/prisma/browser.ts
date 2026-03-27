@@ -33,6 +33,11 @@ export type Municipio = Prisma.MunicipioModel
  */
 export type Usuario = Prisma.UsuarioModel
 /**
+ * Model Perfil
+ * 
+ */
+export type Perfil = Prisma.PerfilModel
+/**
  * Model Parcela
  * 
  */
