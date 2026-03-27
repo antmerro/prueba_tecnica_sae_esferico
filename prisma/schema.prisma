@@ -39,6 +39,14 @@ model Usuario {
   email    String    @unique
   password String
   parcelas Parcela[]
+  perfil   Perfil?
+}
+
+model Perfil {
+  id        Int     @id @default(autoincrement())
+  imagen    String
+  usuario   Usuario @relation(fields: [usuarioId], references: [id])
+  usuarioId Int     @unique
 }
 
 model Parcela {

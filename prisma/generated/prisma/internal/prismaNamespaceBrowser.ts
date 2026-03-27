@@ -54,6 +54,7 @@ export const ModelName = {
   Provincia: 'Provincia',
   Municipio: 'Municipio',
   Usuario: 'Usuario',
+  Perfil: 'Perfil',
   Parcela: 'Parcela',
   Recinto: 'Recinto',
   Cultivo: 'Cultivo',
@@ -101,6 +102,15 @@ export const UsuarioScalarFieldEnum = {
 } as const
 
 export type UsuarioScalarFieldEnum = (typeof UsuarioScalarFieldEnum)[keyof typeof UsuarioScalarFieldEnum]
+
+
+export const PerfilScalarFieldEnum = {
+  id: 'id',
+  imagen: 'imagen',
+  usuarioId: 'usuarioId'
+} as const
+
+export type PerfilScalarFieldEnum = (typeof PerfilScalarFieldEnum)[keyof typeof PerfilScalarFieldEnum]
 
 
 export const ParcelaScalarFieldEnum = {
