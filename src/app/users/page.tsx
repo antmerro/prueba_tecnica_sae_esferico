@@ -1,19 +1,8 @@
-import { prisma } from "../../../prisma/prisma_client";
+import { getUsuarios } from "../../lib/queries/usuarios";
 import UserCard from "./UserCard";
 
 export default async function UsersPage() {
-    const users = await prisma.usuario.findMany({
-        select: {
-            id: true,
-            nombre: true,
-            email: true,
-            perfil: { select: { imagen: true } },
-            _count: {
-                select: { parcelas: true },
-            },
-        },
-        orderBy: { id: "asc" },
-    });
+    const users = await getUsuarios();
 
     return (
         <main className="max-w-5xl mx-auto px-4 py-10">

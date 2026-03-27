@@ -2,30 +2,12 @@
 
 import { MapContainer, Polygon, TileLayer, Tooltip } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
-import type { ParcelaData, RecintoData } from "./types";
+import type { ParcelaData, RecintoData } from "../../../lib/types";
+import { parseCoords, computeBounds } from "../../../lib/geo";
 
 interface MapViewProps {
     parcelas: ParcelaData[];
     recintos: RecintoData[];
-}
-
-// ST_AsGeoJSON returns coordinates as [lon, lat]; Leaflet needs [lat, lon]
-function parseCoords(geom: string): [number, number][] {
-    const g = JSON.parse(geom) as { coordinates: [number, number][][] };
-    return g.coordinates[0].map(([lon, lat]) => [lat, lon]);
-}
-
-function computeBounds(
-    parcelas: ParcelaData[],
-    recintos: RecintoData[]
-): [[number, number], [number, number]] {
-    const all = [...parcelas, ...recintos].flatMap((f) => parseCoords(f.geom));
-    const lats = all.map(([lat]) => lat);
-    const lons = all.map(([, lon]) => lon);
-    return [
-        [Math.min(...lats), Math.min(...lons)],
-        [Math.max(...lats), Math.max(...lons)],
-    ];
 }
 
 function formatDate(iso: string): string {
