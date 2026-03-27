@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import type { ParcelaData, RecintoData } from "./types";
+import type { ParcelaData, RecintoData } from "../../../lib/types";
 
 const MapView = dynamic(() => import("./MapView"), {
     ssr: false,
