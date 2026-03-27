@@ -168,7 +168,7 @@ async function main() {
         RETURNING id
     `;
 
-    // Parcela 3 — María, Lorca
+    // Parcela 3 — María, Lorca (pentágono con protrusion norte)
     const [p3] = await prisma.$queryRaw<{ id: number }[]>`
         INSERT INTO "Parcela" ("geom", "usuarioId", "municipioId")
         VALUES (
@@ -176,6 +176,7 @@ async function main() {
                 [-1.7060, 37.6700],
                 [-1.6990, 37.6700],
                 [-1.6990, 37.6760],
+                [-1.7025, 37.6790],
                 [-1.7060, 37.6760],
                 [-1.7060, 37.6700]
             ]]}'),
@@ -202,16 +203,17 @@ async function main() {
         RETURNING id
     `;
 
-    // Parcela 5 — Pedro, Almería  (contains two recintos side by side)
+    // Parcela 5 — Pedro, Almería (hexágono irregular, contiene dos recintos)
     const [p5] = await prisma.$queryRaw<{ id: number }[]>`
         INSERT INTO "Parcela" ("geom", "usuarioId", "municipioId")
         VALUES (
             ST_GeomFromGeoJSON('{"type":"Polygon","coordinates":[[
-                [-2.4630, 36.8400],
-                [-2.4530, 36.8400],
-                [-2.4530, 36.8470],
-                [-2.4630, 36.8470],
-                [-2.4630, 36.8400]
+                [-2.4640, 36.8395],
+                [-2.4530, 36.8395],
+                [-2.4510, 36.8445],
+                [-2.4555, 36.8480],
+                [-2.4640, 36.8465],
+                [-2.4640, 36.8395]
             ]]}'),
             ${u3.id},
             ${municipioAlmeria.id}
@@ -236,15 +238,14 @@ async function main() {
         RETURNING id
     `;
 
-    // Parcela 7 — Ana, El Ejido
+    // Parcela 7 — Ana, El Ejido (triángulo)
     const [p7] = await prisma.$queryRaw<{ id: number }[]>`
         INSERT INTO "Parcela" ("geom", "usuarioId", "municipioId")
         VALUES (
             ST_GeomFromGeoJSON('{"type":"Polygon","coordinates":[[
                 [-2.7810, 36.7750],
                 [-2.7730, 36.7750],
-                [-2.7730, 36.7820],
-                [-2.7810, 36.7820],
+                [-2.7770, 36.7830],
                 [-2.7810, 36.7750]
             ]]}'),
             ${u4.id},
@@ -338,16 +339,16 @@ async function main() {
         )
     `;
 
-    // Recinto 3 — olivo, dentro de p3
+    // Recinto 3 — olivo, dentro de p3 (zona baja del pentágono, bien dentro del rectángulo base)
     await prisma.$executeRaw`
         INSERT INTO "Recinto" ("geom", "parcelaId", "cultivoId", "fechaSiembra", "fechaCosecha")
         VALUES (
             ST_GeomFromGeoJSON('{"type":"Polygon","coordinates":[[
-                [-1.7050, 37.6710],
-                [-1.7000, 37.6710],
-                [-1.7000, 37.6750],
-                [-1.7050, 37.6750],
-                [-1.7050, 37.6710]
+                [-1.7040, 37.6715],
+                [-1.7010, 37.6715],
+                [-1.7010, 37.6745],
+                [-1.7040, 37.6745],
+                [-1.7040, 37.6715]
             ]]}'),
             ${p3.id}, ${olivo.id},
             '2024-03-01', NULL
@@ -370,32 +371,32 @@ async function main() {
         )
     `;
 
-    // Recinto 5a — tomate (mitad izquierda de p5)
+    // Recinto 5a — tomate (zona izquierda del hexágono)
     await prisma.$executeRaw`
         INSERT INTO "Recinto" ("geom", "parcelaId", "cultivoId", "fechaSiembra", "fechaCosecha")
         VALUES (
             ST_GeomFromGeoJSON('{"type":"Polygon","coordinates":[[
-                [-2.4620, 36.8410],
+                [-2.4625, 36.8410],
                 [-2.4590, 36.8410],
-                [-2.4590, 36.8460],
-                [-2.4620, 36.8460],
-                [-2.4620, 36.8410]
+                [-2.4590, 36.8445],
+                [-2.4625, 36.8445],
+                [-2.4625, 36.8410]
             ]]}'),
             ${p5.id}, ${tomate.id},
             '2026-02-01', '2026-06-30'
         )
     `;
 
-    // Recinto 5b — pimiento (mitad derecha de p5)
+    // Recinto 5b — pimiento (zona derecha del hexágono)
     await prisma.$executeRaw`
         INSERT INTO "Recinto" ("geom", "parcelaId", "cultivoId", "fechaSiembra", "fechaCosecha")
         VALUES (
             ST_GeomFromGeoJSON('{"type":"Polygon","coordinates":[[
-                [-2.4575, 36.8410],
-                [-2.4540, 36.8410],
-                [-2.4540, 36.8460],
-                [-2.4575, 36.8460],
-                [-2.4575, 36.8410]
+                [-2.4580, 36.8415],
+                [-2.4545, 36.8415],
+                [-2.4545, 36.8450],
+                [-2.4580, 36.8450],
+                [-2.4580, 36.8415]
             ]]}'),
             ${p5.id}, ${pimiento.id},
             '2026-03-01', '2026-07-15'
@@ -418,16 +419,16 @@ async function main() {
         )
     `;
 
-    // Recinto 7 — pimiento, dentro de p7
+    // Recinto 7 — pimiento, dentro de p7 (triángulo, recinto en la base central)
     await prisma.$executeRaw`
         INSERT INTO "Recinto" ("geom", "parcelaId", "cultivoId", "fechaSiembra", "fechaCosecha")
         VALUES (
             ST_GeomFromGeoJSON('{"type":"Polygon","coordinates":[[
-                [-2.7800, 36.7760],
-                [-2.7740, 36.7760],
-                [-2.7740, 36.7810],
-                [-2.7800, 36.7810],
-                [-2.7800, 36.7760]
+                [-2.7790, 36.7760],
+                [-2.7750, 36.7760],
+                [-2.7750, 36.7775],
+                [-2.7790, 36.7775],
+                [-2.7790, 36.7760]
             ]]}'),
             ${p7.id}, ${pimiento.id},
             '2026-02-15', '2026-06-15'
