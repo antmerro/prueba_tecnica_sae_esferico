@@ -119,6 +119,15 @@ async function main() {
     ]);
     void u7; // Fernando  no tiene parcelas - util para probar test del filtro "no tiene parcelas"
 
+    // -- Perfiles
+    console.log("   Inserting profiles...");
+    await prisma.perfil.createMany({
+        data: [u1, u2, u3, u4, u5, u6, u7].map((u) => ({
+            usuarioId: u.id,
+            imagen: `https://i.pravatar.cc/150?u=${u.email}`,
+        })),
+    });
+
     // -- Parcelas (raw queries with ST_GeomFromGeoJSON)
     console.log("   Inserting plots...");
     // Todos los polígonos se dibujan alrededor de la región de Murcia / Almería.

@@ -7,6 +7,7 @@ export default async function UsersPage() {
             id: true,
             nombre: true,
             email: true,
+            perfil: { select: { imagen: true } },
             _count: {
                 select: { parcelas: true },
             },
@@ -24,6 +25,7 @@ export default async function UsersPage() {
                         id={user.id}
                         nombre={user.nombre}
                         email={user.email}
+                        imagen={user.perfil?.imagen ?? null}
                         parcelasCount={user._count.parcelas}
                     />
                 ))}
