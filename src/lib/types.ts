@@ -14,3 +14,15 @@ export type RecintoData = {
     fechaCosecha: string | null;
     parcelaId: number;
 };
+
+export type MovieResult = {
+    id: number;
+    title: string;
+    description: string;
+    score: number; // similitud coseno ∈ [0, 1]: cuanto más alto, más parecido
+};
+
+export type MovieSuggestion = {
+    title: string;
+    description: string;
+};
