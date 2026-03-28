@@ -1,20 +1,12 @@
 # Prueba Técnica - Esférico SAE
 
-## 📋 Descripción
+## Descripción
 
-Esta prueba técnica consiste en desarrollar una aplicación web con Next.js que permita visualizar usuarios y sus parcelas agrícolas en un mapa interactivo.
-
----
-
-## ⚠️ Notas importantes
-
-- **Si no da tiempo a completar todo**, prioriza las tareas que consideres más importantes. Preferimos ver menos funcionalidades bien implementadas que muchas a medias.
-- **Puedes utilizar herramientas de IA** (ChatGPT, Copilot, Claude, etc.) sin ningún problema. Sin embargo, ten en cuenta que posteriormente se realizará una entrevista técnica en la que se preguntará sobre el código desarrollado, por lo que es importante que entiendas todo lo que has implementado.
-- **Se valorará el uso de Git**: la forma en que estructuras los commits (mensajes claros y descriptivos) y las ramas que creas. Puedes usar GitFlow, trunk-based development o cualquier estrategia de branching que consideres apropiada.
+Aplicación web desarrollada con Next.js que permite visualizar usuarios y sus parcelas agrícolas en un mapa interactivo, junto con un buscador semántico de películas mediante embeddings y pgvector.
 
 ---
 
-## 🚀 Setup
+## Setup
 
 ### Requisitos previos
 
@@ -38,12 +30,14 @@ Esta prueba técnica consiste en desarrollar una aplicación web con Next.js que
    # o
    npm install
    ```
-3. **Levantar la base de datos PostgreSQL con PostGIS:**
+
+3. **Levantar la base de datos PostgreSQL con PostGIS y pgvector:**
 
    ```bash
    docker compose build
    docker compose up -d
    ```
+
 4. **Ejecutar migraciones en la base de datos de desarrollo:**
 
    ```bash
@@ -51,6 +45,7 @@ Esta prueba técnica consiste en desarrollar una aplicación web con Next.js que
    # o
    npm run prisma:migrate:dev
    ```
+
 5. **Ejecutar migraciones en la base de datos de test:**
 
    ```bash
@@ -58,14 +53,24 @@ Esta prueba técnica consiste en desarrollar una aplicación web con Next.js que
    # o
    npm run prisma:migrate:test
    ```
-5. **Generar el cliente de Prisma:**
+
+6. **Generar el cliente de Prisma:**
 
    ```bash
    pnpm run prisma:generate
    # o
    npm run prisma:generate
    ```
-6. **Iniciar el servidor de desarrollo:**
+
+7. **Poblar la base de datos de desarrollo con datos de prueba:**
+
+   ```bash
+   pnpm run prisma:seed
+   # o
+   npm run prisma:seed
+   ```
+
+8. **Iniciar el servidor de desarrollo:**
 
    ```bash
    pnpm run dev
@@ -77,128 +82,102 @@ La aplicación estará disponible en `http://localhost:3000`.
 
 ---
 
+## Tareas implementadas
 
-## 📝 Tareas a realizar
+### Tarea 1 — Script de seed
 
-### 1. Completar el script de seedeo
+**Archivo:** `prisma/seed/seed.ts`
 
-**Archivo:** `/prisma/seed/seed.ts`
+Script que puebla la base de datos con datos de prueba para el dominio agrícola y las películas para el vector search.
 
-Completa el script de seed para poblar la base de datos con datos de prueba. Deberás crear:
-
-- **Provincias y Municipios**
-- **Usuarios** (al menos 6 - 7 usuarios de ejemplo)
-- **Cultivos** (tipos de cultivo: trigo, maíz, olivo, etc.)
-- **Parcelas** con geometrías de polígonos (asociadas a usuarios y municipios)
-- **Recintos** dentro de las parcelas (asociados a cultivos)
-
-**Instrucciones:**
-
-- Para las tablas sin geometrías, usa el cliente de Prisma normalmente. Consulta la [documentación de CRUD](https://www.prisma.io/docs/orm/prisma-client/queries/crud).
-- Para insertar polígonos, usa raw queries con la función `ST_GeomFromGeoJSON` de PostGIS. Consulta la [documentación de raw queries](https://www.prisma.io/docs/orm/prisma-client/using-raw-sql/raw-queries) y la [documentación de ST_GeomFromGeoJSON](https://postgis.net/docs/ST_GeomFromGeoJSON.html).
-- Puedes crear polígonos de prueba fácilmente con esta herramienta: [geojson.io](https://geojson.io/#map=5/39.25/-5.56)
-
-**Nota:** Los recintos deben estar geométricamente contenidos dentro de sus parcelas (existe un constraint que lo valida con `ST_Within`).
+- Se insertan 2 provincias (Murcia y Almería) con 6 municipios, 7 usuarios con imagen de avatar, 7 tipos de cultivo, 10 parcelas y 10 recintos con geometrías reales alrededor de la región de Murcia/Almería.
+- Las parcelas se insertan con `$queryRaw` y `ST_GeomFromGeoJSON` para recuperar el `id` generado y asociar los recintos. Los recintos se insertan con `$executeRaw` bajo el mismo patrón.
+- El séptimo usuario no tiene parcelas asignadas, lo que permite probar el caso "usuario sin parcelas" en tests y en la UI.
+- Los recintos están geométricamente contenidos dentro de sus parcelas, validado por el constraint `ST_Within` de la base de datos.
+- Se generan embeddings de 384 dimensiones para 50 películas usando `@xenova/transformers` (local) y se insertan en la tabla `Movie` con `$executeRawUnsafe` y el cast `::vector`.
 
 ---
 
-### 2. Vista de listado de usuarios
+### Tarea 2 — Vista de listado de usuarios
 
 **Ruta:** `/users`
 
-Crea una vista que muestre un listado de usuarios en formato de tarjetas (cards).
+Vista con un grid de tarjetas que muestra todos los usuarios de la base de datos.
 
-**Requisitos:**
-
-- Mostrar datos **no sensibles** de los usuarios (nombre, email, número de parcelas, etc.)
-- **NO mostrar** el password ni datos sensibles
-- Al hacer clic en una tarjeta, navegar a la vista del mapa del usuario (`/user/:id`)
-
-**Bonus (opcional):**
-
-- Crear un modelo `Profile` con relación 1:1 con `Usuario` que incluya un campo `imagen`
-- Renderizar la imagen del perfil en las tarjetas de usuario utilizando los componentes específicos para imágenes de NextJS
+- Se añade `UsersPage` como Server Component que llama directamente a `getUsuarios()` y renderiza el grid, y `UserCard` como Client Component que envuelve cada tarjeta en un `<Link>` hacia `/user/:id`.
+- La query usa `select` explícito que excluye `password` y obtiene el conteo de parcelas con `_count` de Prisma sin consulta adicional.
+- Se muestra la imagen de perfil con `<Image>` de Next.js y un badge con el número de parcelas con plural/singular (`"1 parcela"` / `"N parcelas"`).
+- Se implementó el modelo `Perfil` para almacenar la URL del avatar; si el usuario no tiene perfil la imagen se omite.
 
 ---
 
-### 3. Vista de mapa con parcelas y recintos
+### Tarea 3 — Vista de mapa con parcelas y recintos
 
 **Ruta:** `/user/:id`
 
-Crea una vista con un mapa de Leaflet que muestre las parcelas y recintos del usuario.
+Vista a pantalla completa con un mapa Leaflet que muestra las parcelas y recintos del usuario seleccionado.
 
-**Requisitos:**
-
-- Usar la librería [react-leaflet](https://react-leaflet.js.org/) para renderizar el mapa
-- Mostrar las **parcelas** del usuario como polígonos en el mapa
-- Mostrar los **recintos** dentro de cada parcela (con un color diferente para distinguirlos)
-- Al hacer **hover** sobre una parcela o recinto, mostrar información de la base de datos:
-  - **Parcela:** municipio, provincia, número de recintos
-  - **Recinto:** cultivo, fecha de siembra, fecha de cosecha
-- La información puede mostrarse dentro del mapa (tooltip/popup) o fuera (panel lateral), a tu elección
+- Se añade la página como Server Component que valida el parámetro `id` y llama a `notFound()` si el usuario no existe, luego pasa los datos a `MapWrapper`.
+- Las parcelas se renderizan como polígonos azules y los recintos como polígonos verdes. Al hacer hover aparece un tooltip con municipio, provincia y número de recintos (parcela) o cultivo y fechas de siembra/cosecha (recinto).
+- Las geometrías PostGIS se serializan con `ST_AsGeoJSON` en las queries del servidor y se invierten de `[lon, lat]` a `[lat, lon]` para Leaflet mediante `parseCoords`. Las fechas se convierten a ISO string antes de pasar al cliente.
+- El mapa se ajusta automáticamente al bounding box de todos los polígonos con `computeBounds`. Si el usuario no tiene parcelas se muestra un mensaje en su lugar.
+- Leaflet se carga con `dynamic(..., { ssr: false })` en `MapWrapper` para evitar errores de hidratación.
 
 ---
 
-### 4. Tests con Jest
-**Carpeta:** `/__tests__/`
+### Tarea 4 — Tests con Jest
 
-Crea al menos **3 tests** utilizando Jest (ya configurado en el proyecto).
+**Carpeta:** `__tests__/`
 
-**Ejemplos de tests válidos:**
+Se implementan 9 tests distribuidos en 3 archivos.
 
-- **Test de renderizado:** Verificar que la página de usuarios (`/users`) renderiza correctamente las tarjetas de usuario
-- **Test de navegación:** Comprobar que al hacer clic en una tarjeta de usuario se navega a la ruta correcta (`/user/:id`)
-- **Test de componente:** Verificar que el componente del mapa muestra el número correcto de parcelas y recintos, y que dichas parcelas y recintos solo pertenecen a dicho usuario y no a otro.
-- **Test de datos:** Verificar que los datos mostrados en las tarjetas no incluyen información sensible
+- `UserCard.test.tsx` (4 tests): test de integración que crea y borra un usuario en la BD de test con `beforeAll`/`afterAll`. Verifica que se renderizan nombre, email y contador; que el hash de contraseña no aparece en el HTML; que el link apunta a `/user/:id`; y que el contador usa singular cuando `parcelasCount === 1`.
+- `MapView.test.tsx` (3 tests): mockea `react-leaflet` (cada `Polygon` → `<div data-testid="polygon">`) y el CSS de Leaflet para ejecutar en jsdom. Verifica el conteo exacto de polígonos, que todos los recintos pertenecen a parcelas del usuario, y el mensaje de aviso cuando no hay parcelas.
+- `geo.test.ts` (2 tests): tests unitarios que verifican la inversión de coordenadas de `parseCoords` (`[lon, lat]` → `[lat, lon]`) y que `computeBounds` calcula el bounding box correcto cuando un recinto está contenido dentro de una parcela.
 
-**Ejecutar tests:**
+---
 
-```bash
-pnpm run test
-# o
-npm run test
+### Tarea 5B — Vector search de películas
+
+**Ruta:** `/movies` | **Endpoints:** `/api/movie-search`, `/api/movie-suggest`
+
+Búsqueda semántica de películas mediante embeddings locales y pgvector.
+
+#### Cómo funciona
+
+Resumen:
+- Se añadió la ruta `/movies` para busqueda semantica que ordena las busquedas por un score que aparece a la derecha de los resultados finales.
+- Se añade el endpoint `/api/movie-search` que valida la query con Zod, genera el embedding del texto usando `@xenova/transformers` (modelo `all-MiniLM-L6-v2`) y ejecuta la búsqueda vectorial contra pgvector con el operador `<=>`. Devuelve las 8 películas más similares con título, descripción y score.
+- Se añade el endpoint `/api/movie-suggest` a modo de mejora de experiencia de usuario con un autocompletado rápido no case sensitive, con caché de 1 hora.
+- Se añade un índice GIN de trigramas (`pg_trgm`) sobre `Movie.title` para acelerar las búsquedas `ILIKE` con wildcards.
+
+---
+
+## Arquitectura
+
+```
+src/
+├── app/
+│   ├── users/          # Listado de usuarios (Server Component)
+│   ├── user/[id]/      # Mapa de parcelas (Server + Client Components)
+│   ├── movies/         # Buscador semántico (Client Component + hook)
+│   └── api/
+│       ├── movie-search/   # Búsqueda vectorial
+│       └── movie-suggest/  # Autocompletado ILIKE
+└── lib/
+    ├── queries/
+    │   ├── usuarios.ts     # Queries de usuarios
+    │   ├── parcelas.ts     # Queries geoespaciales
+    │   └── movies.ts       # Queries pgvector + singleton de modelo
+    ├── geo.ts              # Utilidades de cálculo geoespacial
+    └── types.ts            # Tipos compartidos
 ```
 
----
-### 5. Filtros / Vector Search
-Elige entre la opción 5A o 5B y realiza solo una de las dos.
-
-#### 5A - Filtro de usuarios
-
-Crea un buscador de usuarios y un filtro que distinga entre usuarios que tienen parcelas y los que no.
-
-- Implementa un buscador en la ruta `/users` que permita buscar por `nombre` y `email`.
-- Añade un filtro en la misma ruta para mostrar únicamente los usuarios que tienen parcelas asociadas o los que no tienen ninguna.
-
-**Requisitos:**
-
-- El endpoint debe validar los parámetros de entrada.
-- Debes mostrar el número de parcelas que tiene cada usuario.
-
-#### 5B - Vector search de películas (embeddings + búsqueda semántica)
-
-Crea una búsqueda semántica de películas usando embeddings y pgvector:
-
-- Genera los embeddings de cada película de forma local usando [`@xenova/transformers`](https://www.npmjs.com/package/@xenova/transformers) (no dependas de APIs externas).
-- Inserta las películas y sus embeddings en la tabla `Movie` usando SQL raw y el tipo `vector` de pgvector ([raw queries en Prisma](https://www.prisma.io/docs/orm/prisma-client/using-raw-sql/raw-queries)).
-- Crea un endpoint `/api/movie-search` que reciba un texto y devuelva el top N de películas más similares usando búsqueda vectorial (`embedding <=> query_vector`).
-- Implementa una vista `/movies` con un buscador: el usuario escribe una frase (por ejemplo, `a scary monster`) y se muestran las películas más relevantes según la búsqueda semántica.
-- Puedes revisar el `/src/types/xenova-transformers.d.ts` para guiarte un poco con la libreria `@xenova/transformers`
-
-**Requisitos:**
-
-- El endpoint debe validar los parámetros de entrada.
-- El buscador debe mostrar el título, descripción y el score de similitud de cada resultado.
-
-**Enlaces útiles:**
-- [Documentación de pgvector](https://github.com/pgvector/pgvector)
-- [Ejemplo de embeddings locales con Xenova](https://github.com/xenova/transformers.js)
-
-
+**Decisión de arquitectura — Server Components vs API routes:** Las vistas de usuarios y mapas usan Server Components que llaman directamente a `src/lib/queries/` (sin pasar por HTTP), lo que elimina una capa de latencia y simplifica el código. La página de películas usa una API route porque necesita ejecutar lógica de servidor (generación de embeddings) desde un Client Component.
 
 ---
 
-## 📊 Modelo de datos
+## Modelo de datos
 
 ```
 Provincia (1) ──── (N) Municipio
@@ -206,74 +185,54 @@ Provincia (1) ──── (N) Municipio
                          │ (1)
                          ▼
 Usuario (1) ──── (N) Parcela (1) ──── (N) Recinto (N) ──── (1) Cultivo
+   │
+   └──── (1) Perfil
+
+Movie (independiente — búsqueda semántica)
 ```
 
-- **Provincia:** id, nombre
-- **Municipio:** id, nombre, provinciaId
-- **Usuario:** id, nombre, email, password
-- **Parcela:** id, geom (Polygon), usuarioId, municipioId
-- **Recinto:** id, geom (Polygon), parcelaId, cultivoId, fechaSiembra, fechaCosecha
-- **Cultivo:** id, nombre
-
 ---
 
-## 🛠️ Tecnologías
+## Tecnologías
 
-- **Framework:** Next.js 16
+- **Framework:** Next.js 15 (App Router, Server Components)
 - **ORM:** Prisma 7
-- **Base de datos:** PostgreSQL 18 + PostGIS 3.6
+- **Base de datos:** PostgreSQL + PostGIS + pgvector
 - **Mapas:** Leaflet / react-leaflet
-- **Estilos:** CSS Modules / SCSS / Tailwind
+- **Embeddings:** @xenova/transformers (modelo all-MiniLM-L6-v2, local)
+- **Validación:** Zod
+- **Sanitización:** DOMPurify
+- **Estilos:** Tailwind CSS
+- **Tests:** Jest
 
 ---
 
-## ⌨️ Comandos útiles
+## Comandos útiles
 
 ### Prisma
 
-| Comando                          | Descripción                                                                                  |
-| -------------------------------- | --------------------------------------------------------------------------------------------- |
-| `pnpm run prisma:generate`     | Regenera el cliente de Prisma después de cambios en el schema                                |
-| `pnpm run prisma:migrate:dev`  | Crea y aplica una nueva migración en desarrollo                                              |
-| `pnpm run prisma:migrate:test` | Aplica migraciones en la base de datos de test                                                |
-| `pnpm run prisma:reset:dev`    | Resetea la base de datos de desarrollo (borra todos los datos y re-aplica migraciones + seed) |
-| `pnpm run prisma:reset:test`   | Resetea la base de datos de test                                                              |
+| Comando | Descripción |
+|---|---|
+| `pnpm run prisma:generate` | Regenera el cliente de Prisma después de cambios en el schema |
+| `pnpm run prisma:migrate:dev` | Crea y aplica una nueva migración en desarrollo |
+| `pnpm run prisma:migrate:test` | Aplica migraciones en la base de datos de test |
+| `pnpm run prisma:reset:dev` | Resetea la base de datos de desarrollo (borra datos y re-aplica migraciones + seed) |
+| `pnpm run prisma:reset:test` | Resetea la base de datos de test |
+| `pnpm run prisma:seed` | Ejecuta solo el seed sin resetear la base de datos |
 
 ### Docker
 
-| Comando                    | Descripción                                                                     |
-| -------------------------- | -------------------------------------------------------------------------------- |
-| `docker compose up -d`   | Levanta los contenedores en segundo plano                                        |
-| `docker compose down`    | Para y elimina los contenedores                                                  |
-| `docker compose down -v` | Para los contenedores y elimina los volúmenes (borra datos de la base de datos) |
-| `docker compose logs -f` | Muestra los logs de los contenedores en tiempo real                              |
+| Comando | Descripción |
+|---|---|
+| `docker compose up -d` | Levanta los contenedores en segundo plano |
+| `docker compose down` | Para y elimina los contenedores |
+| `docker compose down -v` | Para los contenedores y elimina los volúmenes (borra datos) |
+| `docker compose logs -f` | Muestra los logs en tiempo real |
 
 ### Tests
 
-| Comando                         | Descripción                                                |
-| ------------------------------- | ----------------------------------------------------------- |
-| `pnpm run test`               | Ejecuta todos los tests                                     |
-| `pnpm run test -- --watch`    | Ejecuta tests en modo watch (re-ejecuta al guardar cambios) |
-| `pnpm run test -- --coverage` | Ejecuta tests y genera reporte de cobertura                 |
-
----
-
-## 📚 Recursos útiles
-
-- [Documentación de Next.js](https://nextjs.org/docs)
-- [Documentación de Prisma](https://www.prisma.io/docs)
-- [Documentación de react-leaflet](https://react-leaflet.js.org/)
-- [Documentación de PostGIS](https://postgis.net/documentation/)
-- [Herramienta para crear GeoJSON](https://geojson.io/)
-
----
-
-## ✅ Criterios de evaluación
-
-- Código limpio y bien estructurado
-- Uso correcto de TypeScript
-- Manejo adecuado de datos geoespaciales
-- Experiencia de usuario en la visualización del mapa
-- Bonus: Tests, manejo de errores, optimizaciones
-
-¡Buena suerte! 🍀
+| Comando | Descripción |
+|---|---|
+| `pnpm run test` | Ejecuta todos los tests |
+| `pnpm run test -- --watch` | Ejecuta tests en modo watch |
+| `pnpm run test -- --coverage` | Ejecuta tests y genera reporte de cobertura |
