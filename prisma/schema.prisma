@@ -16,7 +16,7 @@ generator client {
 
 datasource db {
   provider   = "postgresql"
-  extensions = [vector]
+  extensions = [vector, pg_trgm]
 }
 
 model Provincia {
@@ -85,4 +85,6 @@ model Movie {
   title       String
   description String
   embedding   Unsupported("vector")
+
+  @@index([title(ops: raw("gin_trgm_ops"))], type: Gin)
 }
