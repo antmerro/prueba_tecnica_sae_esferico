@@ -14,7 +14,7 @@
     "prisma:reset:test": "dotenv -e .env.test -- prisma migrate reset",
     "prisma:seed:dev": "dotenv -e .env.development -- prisma db seed",
     "prisma:seed:test": "dotenv -e .env.test -- prisma db seed",
-    "test": "jest",
+    "test": "jest --forceExit",
     "test:watch": "jest --watch"
   },
   "dependencies": {
